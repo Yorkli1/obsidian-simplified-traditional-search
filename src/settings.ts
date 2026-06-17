@@ -108,7 +108,7 @@ export class STSearchSettingTab extends PluginSettingTab {
       }
     }
 
-    regionNote.createEl('p', { text: '*香港繁體和台灣繁體大部分的字寫法相同，應用此選項可能只會在香港繁體和台灣繁體之間有差異時進行展開且不會匹配簡體中文。' });
+    regionNote.createEl('p', { text: '*繁體(HK)和繁體(TW)大部分寫法相同，應用此選項僅在繁體(HK)和繁體(TW)之間有差異時進行展開且不會匹配簡體中文。' });
     //  高級功能
     // ════════════════════════════════════════
     containerEl.createEl('h3', { text: '高級功能' });
