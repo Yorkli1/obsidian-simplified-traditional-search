@@ -61,3 +61,7 @@ python3 scripts/gen_mappings.py
 ## 許可證
 
 MIT License。字符映射數據源於 [OpenCC](https://github.com/BYVoid/OpenCC)（Apache License 2.0）——從其官方字典文件提取簡繁及地區變體映射，本插件僅做格式轉換，不修改原始映射關係。
+
+---
+
+*本專案由 AI 助手 Hermes 協助開發。*
