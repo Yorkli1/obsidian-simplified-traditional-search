@@ -3,7 +3,7 @@
 > **在 Obsidian 全局搜索中自動匹配簡體與繁體中文 — 輸入「剑」也搜得到「劍」**
 
 ![Obsidian](https://img.shields.io/badge/Obsidian-Plugin-7C3AED?logo=obsidian)
-![Version](https://img.shields.io/github/v/release/Yorklii/Obsidian-%E7%B0%A1%E7%B9%81%E9%AB%94%E5%85%A8%E5%B1%80%E6%90%9C%E7%B4%A2)
+![Version](https://img.shields.io/github/v/release/Yorkli1/obsidian-cjk-search)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ---
@@ -28,7 +28,7 @@
 ## 📦 安裝
 
 ### 手動安裝
-1. 下載最新的 [Release](https://github.com/Yorklii/Obsidian-%E7%B0%A1%E7%B9%81%E9%AB%94%E5%85%A8%E5%B1%80%E6%90%9C%E7%B4%A2/releases)
+1. 下載最新的 [Release](https://github.com/Yorkli1/obsidian-cjk-search/releases)
 2. 解壓到你的 vault：`.obsidian/plugins/cjk-search/`
 3. 在 Obsidian → 設定 → 第三方插件 → **重新載入插件**
 4. 啟用 **CJK Search**
