@@ -144,8 +144,8 @@ export class SearchHook {
       const cleanText = this._stripExpansion(currentValue);
       this.isUpdating = true;
       input.value = cleanText;
-      this.lastUserValue = cleanText;
       this.isUpdating = false;
+      // 不設 lastUserValue → 後續 input 事件會當作新文字處理
       input.dispatchEvent(new Event('input', { bubbles: true }));
       return;
     }
