@@ -8,8 +8,6 @@ import s2all from './data/s2all.json';
 import hkVariants from './data/hk_variants.json';
 import twVariants from './data/tw_variants.json';
 import hkTwBidi from './data/hk_tw.json';
-import stPhrases from './data/st_phrases.json';
-import tsPhrases from './data/ts_phrases.json';
 
 export type Region = 'hk' | 'tw' | 'all' | 'tw-hk';
 
@@ -29,8 +27,8 @@ export const variantStats: VariantStats = {
   t2sCount: Object.keys(t2sGen).length,
   hkVariantCount: Object.keys(hkVariants).length,
   twVariantCount: Object.keys(twVariants).length,
-  stPhraseCount: Object.keys(stPhrases).length,
-  tsPhraseCount: Object.keys(tsPhrases).length,
+  stPhraseCount: 49385,
+  tsPhraseCount: 469,
   source: 'OpenCC',
   version: '2024',
 };
@@ -40,12 +38,20 @@ export const variantStats: VariantStats = {
  */
 export class ChineseConverter {
   private region: Region = 'hk';
-  private s2tPhraseMap: Map<string, string>;
-  private t2sPhraseMap: Map<string, string>;
+  private s2tPhraseMap: Map<string, string> | null = null;
+  private t2sPhraseMap: Map<string, string> | null = null;
 
-  constructor() {
-    this.s2tPhraseMap = new Map(Object.entries(stPhrases));
-    this.t2sPhraseMap = new Map(Object.entries(tsPhrases));
+  /**
+   * 載入短語映射數據（從外部 JSON 按需載入）
+   */
+  loadPhraseData(stData: Record<string, string>, tsData: Record<string, string>): void {
+    this.s2tPhraseMap = new Map(Object.entries(stData));
+    this.t2sPhraseMap = new Map(Object.entries(tsData));
+  }
+
+  /** 短語數據是否已載入 */
+  get isPhraseLoaded(): boolean {
+    return this.s2tPhraseMap !== null;
   }
 
   setRegion(region: Region): void {
@@ -61,10 +67,9 @@ export class ChineseConverter {
    * 例如: 自行车 → 腳踏車, 一絲不掛 → 一丝不挂
    */
   getPhraseVariant(text: string): string | undefined {
-    // 先查簡→繁
+    if (!this.s2tPhraseMap || !this.t2sPhraseMap) return undefined;
     const s2t = this.s2tPhraseMap.get(text);
     if (s2t) return s2t;
-    // 再查繁→簡
     const t2s = this.t2sPhraseMap.get(text);
     if (t2s) return t2s;
     return undefined;

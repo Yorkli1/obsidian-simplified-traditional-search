@@ -7,7 +7,6 @@ import { ChineseConverter, type Region } from './converter';
  * 用戶輸入 → 安全檢查 → 防抖 800ms → (原詞) OR (轉換詞) → 原生搜索引擎
  */
 export class SearchHook {
-  private converter: ChineseConverter;
   private inputEl: HTMLInputElement | null = null;
   private isUpdating = false;
   private isComposing = false;
@@ -16,14 +15,12 @@ export class SearchHook {
   private debounceTimer: number | null = null;
 
   constructor(
-    region: Region,
+    private converter: ChineseConverter,
     private keepOperators: boolean,
     private silentMode: boolean,
     private debounceMs: number,
     private phraseEnabled: boolean,
   ) {
-    this.converter = new ChineseConverter();
-    this.converter.setRegion(region);
   }
 
   setRegion(region: Region): void {
