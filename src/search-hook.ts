@@ -2,19 +2,19 @@ import { Direction, ChineseConverter } from './converter';
 
 /**
  * 搜索攔截器 — 掛載到 Obsidian 的全局搜索輸入框
- * 
+ *
  * 工作流程：
- * 用戶輸入 → 檢測中文字符 → OpenCC 轉換 → (原詞) OR (轉換詞) → 原生搜索引擎
+ * 用戶輸入 → 安全檢查 → 防抖 800ms → (原詞) OR (轉換詞) → 原生搜索引擎
  */
 export class SearchHook {
   private converter: ChineseConverter;
   private inputEl: HTMLInputElement | null = null;
   private isUpdating = false;
-  /** 輸入法正在組合中（如拼音輸入法未確認前） */
   private isComposing = false;
-  /** 用戶最後一次手動輸入後的值（排除插件自動展開） */
   private lastUserValue = '';
   private observeTimer: number | null = null;
+  private debounceTimer: number | null = null;
+  private readonly DEBOUNCE_MS = 800;
 
   constructor(
     private direction: Direction,
@@ -26,9 +26,7 @@ export class SearchHook {
 
   setDirection(dir: Direction): void {
     this.direction = dir;
-    if (this.inputEl) {
-      this._processInput(this.inputEl);
-    }
+    if (this.inputEl) this._processInput(this.inputEl);
   }
 
   setKeepOperators(keep: boolean): void {
@@ -39,9 +37,6 @@ export class SearchHook {
     this.silentMode = silent;
   }
 
-  /**
-   * 查找並 hook 到搜索輸入框
-   */
   hook(): boolean {
     const searchLeaf = app.workspace.getLeavesOfType('search')[0];
     if (!searchLeaf) return false;
@@ -59,13 +54,11 @@ export class SearchHook {
     this.inputEl = input;
 
     input.addEventListener('input', this._onInput);
-    // 輸入法組合中不處理（避免拼音輸入過程中誤展開）
     input.addEventListener('compositionstart', this._onCompositionStart);
     input.addEventListener('compositionend', this._onCompositionEnd);
     this._setupFallback(container);
 
     this._processInput(input);
-
     return true;
   }
 
@@ -74,6 +67,7 @@ export class SearchHook {
   }
 
   private _unhook(): void {
+    this._cancelDebounce();
     if (this.inputEl) {
       this.inputEl.removeEventListener('input', this._onInput);
       this.inputEl.removeEventListener('compositionstart', this._onCompositionStart);
@@ -103,102 +97,139 @@ export class SearchHook {
 
   private _onInput = (evt: Event): void => {
     const input = evt.target as HTMLInputElement;
-    // 輸入法組合中不處理（如拼音/倉頡的未確認階段）
     if (this.isComposing) return;
+    this._cancelDebounce();
     this._processInput(input);
   };
 
   private _onCompositionStart = (): void => {
     this.isComposing = true;
+    this._cancelDebounce();
   };
 
   private _onCompositionEnd = (evt: CompositionEvent): void => {
     this.isComposing = false;
-    // 輸入法確認後，處理最終輸入的值
     const input = evt.target as HTMLInputElement;
     this._processInput(input);
   };
 
   /**
-   * 處理搜索輸入變化
-   * 
-   * 安全策略（防止無限循環展開）：
-   * 1. 如果值變短了（用戶在退格/刪除），跳過展開
-   * 2. 如果游標不在輸入框末尾，跳過（用戶在中間編輯）
-   * 3. 如果查詢已包含 OR 展開模式，跳過
-   * 4. 如果 isUpdating 為 true（我們自己在更新），跳過
+   * 安全檢查全部通過 → 啟動防抖 800ms
+   * 用戶繼續打字 → 計時器重置
+   * 用戶停頓 800ms → 執行展開
    */
   private _processInput(input: HTMLInputElement): void {
     if (this.isUpdating) return;
 
     const currentValue = input.value;
 
-    // ── 安全檢查 1：值沒變 → 跳過 ──
+    // 1. 值沒變
     if (currentValue === this.lastUserValue) return;
 
-    // ── 安全檢查 2：值變短了（用戶在退格刪除）→ 跳過，不重新展開 ──
+    // 2. 值變短了（退格刪除）
     if (currentValue.length < this.lastUserValue.length) {
       this.lastUserValue = currentValue;
       return;
     }
 
-    // ── 安全檢查 3：游標不在末尾（用戶在中間編輯）→ 跳過 ──
+    // 3. 游標不在末尾
     if (input.selectionStart !== null && input.selectionStart !== currentValue.length) {
       this.lastUserValue = currentValue;
       return;
     }
 
-    // ── 安全檢查 4：查詢包含括號或 OR → 已是複雜/展開過的查詢，不自動展開 ──
-    //    正常用戶搜索不會打括號，只有我們展開時才會
+    // 4. 已展開 + 用戶後續輸入 → 剝離展開，保留純文字
+    //    例如: (杖与) OR (杖與)剑的魔剑谭 → 杖与剑的魔剑谭
+    if (this._isExpansionWithExtra(currentValue)) {
+      const cleanText = this._stripExpansion(currentValue);
+      this.isUpdating = true;
+      input.value = cleanText;
+      this.lastUserValue = cleanText;
+      this.isUpdating = false;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    }
+
+    // 5. 有括號 → 是我們自己展開的內容
     if (/[()]/.test(currentValue)) {
       this.lastUserValue = currentValue;
       return;
     }
 
-    // ── 安全檢查 5：沒有中文 → 跳過 ──
+    // 6. 沒有中文
     if (!this.converter.hasChinese(currentValue)) {
       this.lastUserValue = currentValue;
       return;
     }
 
-    // ── 安全檢查 6：不需要轉換（全是同方向的字） → 跳過 ──
+    // 7. 不需要轉換（同方向文字）
     if (!this.converter.needsConversion(currentValue, this.direction)) {
       this.lastUserValue = currentValue;
       return;
     }
 
-    // ── 執行展開 ──
-    const expanded = this._expandQuery(currentValue);
-    if (!expanded || expanded === currentValue) return;
-
-    // 記住展開前的值，用於檢測刪除
+    // 全部通過 → 防抖展開
     this.lastUserValue = currentValue;
+    this._scheduleDebounce(input, currentValue);
+  }
+
+  /** 檢測是否為展開 + 用戶後續輸入 */
+  private _isExpansionWithExtra(query: string): boolean {
+    const m = query.match(/\([^)]+\)\s+OR\s+\([^)]+\)/);
+    if (!m || m.index === undefined) return false;
+    const before = query.slice(0, m.index).trim();
+    const after = query.slice(m.index + m[0].length).trim();
+    return !!(before || after);
+  }
+
+  /** 從展開查詢中還原用戶原始輸入 */
+  private _stripExpansion(query: string): string {
+    const m = query.match(/\([^)]+\)\s+OR\s+\([^)]+\)/);
+    if (!m || m.index === undefined) return query;
+    const before = query.slice(0, m.index).trim();
+    const original = m[0].match(/^\(([^)]+)\)/)?.[1] || '';
+    const after = query.slice(m.index + m[0].length).trim();
+    return (before + original + after).trim();
+  }
+
+  private _cancelDebounce(): void {
+    if (this.debounceTimer !== null) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+  }
+
+  private _scheduleDebounce(input: HTMLInputElement, originalValue: string): void {
+    this._cancelDebounce();
+    this.debounceTimer = window.setTimeout(() => {
+      this.debounceTimer = null;
+      if (input.value === originalValue) {
+        this._doExpand(input, originalValue);
+      }
+    }, this.DEBOUNCE_MS);
+  }
+
+  private _doExpand(input: HTMLInputElement, originalValue: string): void {
+    const expanded = this._expandQuery(originalValue);
+    if (!expanded || expanded === originalValue) return;
+
+    this.lastUserValue = originalValue;
+
+    this.isUpdating = true;
+    input.value = expanded;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
 
     if (this.silentMode) {
-      // ── 隱式模式 ──
-      // 展開搜索欄 → 觸發搜索 → 下一個動畫幀恢復原值
-      // 這樣用戶看到的是「剑」，但搜索引擎收到了「(剑) OR (劍)」
-      this.isUpdating = true;
-      input.value = expanded;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
       requestAnimationFrame(() => {
-        input.value = currentValue;
+        input.value = originalValue;
         this.isUpdating = false;
       });
     } else {
-      // ── 顯示模式 ──
-      this.isUpdating = true;
-      input.value = expanded;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
       this.isUpdating = false;
     }
   }
 
-  /**
-   * 展開查詢：將包含中文字符的詞條替換為 (原詞) OR (轉換詞)
-   */
   private _expandQuery(query: string): string {
     const tokens = this._tokenize(query);
     const newTokens: string[] = [];
@@ -217,10 +248,6 @@ export class SearchHook {
     return newTokens.join(' ');
   }
 
-  /**
-   * 將查詢字符串分詞
-   * 識別: quoted strings, operators (path:/file:/tag:), OR, -prefix, group parens
-   */
   private _tokenize(query: string): Token[] {
     const tokens: Token[] = [];
     const re = /("(?:[^"\\]|\\.)*")|(-?(?:path|file|tag|line|block|content|section|match|heading):(?:[^\s)]+|"(?:[^"\\]|\\.)*"))|(-?\()|(\))|(\bOR\b)|(-?(?:[^\s()"]+))/gi;
