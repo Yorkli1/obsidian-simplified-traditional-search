@@ -113,13 +113,19 @@ export class SearchHook {
     // ── 安全檢查 1：值沒變 → 跳過 ──
     if (currentValue === this.lastUserValue) return;
 
-    // ── 安全檢查 2：用戶在刪除（值變短了）→ 跳過 ──
-    if (currentValue.length < this.lastUserValue.length) {
-      this.lastUserValue = currentValue;
-      return;
+    // ── 安全檢查 2：值變短了（用戶在退格刪除我們展開的內容）→ 跳過 ──
+    if (this.lastExpandedValue && currentValue.length < this.lastExpandedValue.length) {
+      // 但如果用戶刪到完全不包含展開模式了（清空後重新輸入），重置狀態
+      if (!/\(.*OR/i.test(currentValue)) {
+        this.lastExpandedValue = '';
+      } else {
+        this.lastUserValue = currentValue;
+        return;
+      }
     }
 
     // ── 安全檢查 3：游標不在末尾（用戶在中間編輯）→ 跳過 ──
+    // selectionStart 為 null 時（如輸入框未聚焦），不阻擋
     if (input.selectionStart !== null && input.selectionStart !== currentValue.length) {
       this.lastUserValue = currentValue;
       return;
