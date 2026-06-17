@@ -1,7 +1,7 @@
 import { Plugin } from 'obsidian';
 import { SearchHook } from './search-hook';
 import { STSearchSettings, STSearchSettingTab, DEFAULT_SETTINGS } from './settings';
-import { ChineseConverter, Direction } from './converter';
+import { ChineseConverter } from './converter';
 
 export default class STSearchPlugin extends Plugin {
   settings!: STSearchSettings;
@@ -15,15 +15,10 @@ export default class STSearchPlugin extends Plugin {
     this.addSettingTab(new STSearchSettingTab(this.app, this));
 
     this.registerEvent(
-      this.app.workspace.on('layout-change', () => {
-        this._tryHook();
-      })
+      this.app.workspace.on('layout-change', () => this._tryHook())
     );
-
     this.registerEvent(
-      this.app.workspace.on('active-leaf-change', () => {
-        this._tryHook();
-      })
+      this.app.workspace.on('active-leaf-change', () => this._tryHook())
     );
 
     setTimeout(() => this._tryHook(), 500);
@@ -50,29 +45,24 @@ export default class STSearchPlugin extends Plugin {
   reevaluate(): void {
     this.searchHook?.unhook();
     this.searchHook = null;
-    if (this.settings.enabled) {
-      this._tryHook();
-    }
+    if (this.settings.enabled) this._tryHook();
   }
 
   private _tryHook(): void {
     if (!this.settings.enabled) return;
     if (this.searchHook) {
-      this.searchHook.setDirection(this.settings.direction);
-      this.searchHook.setKeepOperators(this.settings.keepOperators);
       this.searchHook.setSilentMode(this.settings.silentMode);
+      this.searchHook.setKeepOperators(this.settings.keepOperators);
       this.searchHook.setDebounceMs(this.settings.debounceMs);
       return;
     }
 
     const hook = new SearchHook(
-      this.settings.direction,
+      'bidirectional',
       this.settings.keepOperators,
       this.settings.silentMode,
       this.settings.debounceMs,
     );
-    if (hook.hook()) {
-      this.searchHook = hook;
-    }
+    if (hook.hook()) this.searchHook = hook;
   }
 }

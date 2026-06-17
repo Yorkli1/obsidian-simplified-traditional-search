@@ -2,7 +2,6 @@ import { App, PluginSettingTab, Setting } from 'obsidian';
 import type STSearchPlugin from './main';
 
 export interface STSearchSettings {
-  direction: 's2t' | 't2s' | 'bidirectional';
   enabled: boolean;
   keepOperators: boolean;
   silentMode: boolean;
@@ -10,7 +9,6 @@ export interface STSearchSettings {
 }
 
 export const DEFAULT_SETTINGS: STSearchSettings = {
-  direction: 'bidirectional',
   enabled: true,
   keepOperators: true,
   silentMode: false,
@@ -29,7 +27,6 @@ export class STSearchSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    // ── 頁面標題 ──
     containerEl.createEl('h2', { text: 'Simplified–Traditional Search' });
     containerEl.createEl('p', {
       text: '在 Obsidian 全局搜索中自動匹配簡體與繁體中文，讓你輸入任何一種寫法都能找到所有結果。',
@@ -54,26 +51,18 @@ export class STSearchSettingTab extends PluginSettingTab {
           })
       );
 
-    new Setting(containerEl)
-      .setName('轉換方向')
-      .setDesc('選擇搜索時如何匹配繁簡中文。')
-      .addDropdown(dropdown =>
-        dropdown
-          .addOption('bidirectional', '雙向 ⭐ 推薦')
-          .addOption('s2t', '僅簡體')
-          .addOption('t2s', '僅繁體')
-          .setValue(this.plugin.settings.direction)
-          .onChange(async value => {
-            this.plugin.settings.direction = value as 's2t' | 't2s' | 'bidirectional';
-            await this.plugin.saveSettings();
-            this.plugin.reevaluate();
-          })
-      );
+    containerEl.createEl('p', {
+      text: '匹配方式：雙向　｜　輸入「剑」或「劍」→ 結果同時包含簡體與繁體',
+      cls: 'setting-item-description',
+    });
 
-    // ── 轉換方向下的子選項 ──
-    // 隱式模式
+    // ════════════════════════════════════════
+    //  高級設置
+    // ════════════════════════════════════════
+    containerEl.createEl('h3', { text: '高級設置' });
+
     new Setting(containerEl)
-      .setName('　隱式模式')
+      .setName('隱式模式')
       .setDesc('搜索欄只顯示你輸入的原文（如「剑」），不顯示展開後的 (剑) OR (劍)。結果仍會同時包含繁簡匹配。')
       .addToggle(toggle =>
         toggle
@@ -85,9 +74,8 @@ export class STSearchSettingTab extends PluginSettingTab {
           })
       );
 
-    // 展開延遲
     new Setting(containerEl)
-      .setName('　展開延遲')
+      .setName('展開延遲')
       .setDesc('打字結束後等待多少毫秒再展開查詢。數值越小展開越快，但容易在打字中途誤展開。推薦 600–1000ms。')
       .addSlider(slider =>
         slider
@@ -100,11 +88,6 @@ export class STSearchSettingTab extends PluginSettingTab {
             this.plugin.reevaluate();
           })
       );
-
-    // ════════════════════════════════════════
-    //  高級設置
-    // ════════════════════════════════════════
-    containerEl.createEl('h3', { text: '高級設置' });
 
     new Setting(containerEl)
       .setName('轉換運算符值')
@@ -119,7 +102,7 @@ export class STSearchSettingTab extends PluginSettingTab {
           })
       );
 
-    // ── 運算符轉換說明 ──
+    // ── 運算符說明 ──
     const opDesc = containerEl.createEl('div', {
       cls: 'setting-item-description',
     });
@@ -131,31 +114,17 @@ export class STSearchSettingTab extends PluginSettingTab {
       font-size: var(--font-smaller);
       line-height: 1.6;
     `;
-    opDesc.createEl('p', {
-      text: '什麼是搜索運算符？',
-    });
+    opDesc.createEl('p', { text: '什麼是搜索運算符？' });
     opDesc.createEl('p', {
       text: '在 Obsidian 全局搜索中，你可以使用 path:、tag:、file: 等運算符來限定搜索範圍。例如：',
     });
     const opList = opDesc.createEl('ul');
-    opList.createEl('li', {
-      text: 'path:劍法.md  → 只搜索檔案路徑包含「劍法」的檔案',
-    });
-    opList.createEl('li', {
-      text: 'tag:劍術       → 只搜索包含 #劍術 標籤的檔案',
-    });
-    opList.createEl('p', {
-      text: '開啟此選項後，運算符後面的中文也會被一併轉換：',
-    });
-    opList.createEl('li', {
-      text: 'path:剑法.md → path:剑法.md OR path:劍法.md  ← 同時命中簡繁路徑',
-    });
-    opList.createEl('li', {
-      text: 'tag:劍術 → tag:劍術 OR tag:剑术  ← 同時命中簡繁標籤',
-    });
-    opDesc.createEl('p', {
-      text: '關閉則只轉換純文字，運算符後的值保持原樣。',
-    });
+    opList.createEl('li', { text: 'path:劍法.md  → 只搜索檔案路徑包含「劍法」的檔案' });
+    opList.createEl('li', { text: 'tag:劍術       → 只搜索包含 #劍術 標籤的檔案' });
+    opDesc.createEl('p', { text: '開啟此選項後，運算符後面的中文也會被一併轉換：' });
+    opList.createEl('li', { text: 'path:剑法.md → path:剑法.md OR path:劍法.md  ← 同時命中簡繁路徑' });
+    opList.createEl('li', { text: 'tag:劍術 → tag:劍術 OR tag:剑术  ← 同時命中簡繁標籤' });
+    opDesc.createEl('p', { text: '關閉則只轉換純文字，運算符後的值保持原樣。' });
 
     // ════════════════════════════════════════
     //  關於
