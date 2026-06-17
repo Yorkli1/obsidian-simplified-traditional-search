@@ -141,7 +141,7 @@ export class STSearchSettingTab extends PluginSettingTab {
     `;
     opDesc.createEl('p', { text: '例如選用「全部地區」時：' });
     opDesc.createEl('p', { text: 'tag：里巷  = 【 tag：里巷 OR tag：裏巷 OR tag：裡巷】' });
-    opDesc.createEl('p', { text: '關閉則此選項則：tag：里巷 =【tag：里巷】' });
+    opDesc.createEl('p', { text: '關閉則此選項則：tag：里巷 =【tag：里巷】，【tag：裏巷】和【tag：裡巷】不會被觸發。' });
 
     // ── 展開延遲 ──
     new Setting(containerEl)
