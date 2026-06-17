@@ -8,12 +8,15 @@ export interface STSearchSettings {
   enabled: boolean;
   /** 是否保留運算符不轉換 */
   keepOperators: boolean;
+  /** 隱式模式：搜索欄仍顯示原詞，但結果包含繁簡 */
+  silentMode: boolean;
 }
 
 export const DEFAULT_SETTINGS: STSearchSettings = {
   direction: 'bidirectional',
   enabled: true,
   keepOperators: true,
+  silentMode: false,
 };
 
 export class STSearchSettingTab extends PluginSettingTab {
@@ -72,6 +75,19 @@ export class STSearchSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.keepOperators)
           .onChange(async value => {
             this.plugin.settings.keepOperators = value;
+            await this.plugin.saveSettings();
+            this.plugin.reevaluate();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('隱式模式')
+      .setDesc('開啟後搜索欄不顯示展開後的 (剑) OR (劍)，只顯示你輸入的「剑」，但結果仍包含繁簡匹配。')
+      .addToggle(toggle =>
+        toggle
+          .setValue(this.plugin.settings.silentMode)
+          .onChange(async value => {
+            this.plugin.settings.silentMode = value;
             await this.plugin.saveSettings();
             this.plugin.reevaluate();
           })

@@ -68,10 +68,11 @@ export default class STSearchPlugin extends Plugin {
       // 更新已存在的 hook 的設置
       this.searchHook.setDirection(this.settings.direction);
       this.searchHook.setKeepOperators(this.settings.keepOperators);
+      this.searchHook.setSilentMode(this.settings.silentMode);
       return;
     }
 
-    const hook = new SearchHook(this.settings.direction, this.settings.keepOperators);
+    const hook = new SearchHook(this.settings.direction, this.settings.keepOperators, this.settings.silentMode);
     if (hook.hook()) {
       this.searchHook = hook;
     }

@@ -19,6 +19,7 @@ export class SearchHook {
   constructor(
     private direction: Direction,
     private keepOperators: boolean,
+    private silentMode: boolean,
   ) {
     this.converter = new ChineseConverter();
   }
@@ -32,6 +33,10 @@ export class SearchHook {
 
   setKeepOperators(keep: boolean): void {
     this.keepOperators = keep;
+  }
+
+  setSilentMode(silent: boolean): void {
+    this.silentMode = silent;
   }
 
   /**
@@ -169,13 +174,26 @@ export class SearchHook {
     // 記住展開前的值，用於檢測刪除
     this.lastUserValue = currentValue;
 
-    // 更新搜索框
-    this.isUpdating = true;
-    input.value = expanded;
-    // 觸發 Obsidian 的搜索更新
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-    this.isUpdating = false;
+    if (this.silentMode) {
+      // ── 隱式模式 ──
+      // 展開搜索欄 → 觸發搜索 → 下一個動畫幀恢復原值
+      // 這樣用戶看到的是「剑」，但搜索引擎收到了「(剑) OR (劍)」
+      this.isUpdating = true;
+      input.value = expanded;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      requestAnimationFrame(() => {
+        input.value = currentValue;
+        this.isUpdating = false;
+      });
+    } else {
+      // ── 顯示模式 ──
+      this.isUpdating = true;
+      input.value = expanded;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      this.isUpdating = false;
+    }
   }
 
   /**
