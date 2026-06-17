@@ -96,10 +96,10 @@ export class STSearchSettingTab extends PluginSettingTab {
 
     const tbody = table.createEl('tbody');
     const rows = [
-      ['簡體<->繁體HK', '烟 / 菸', '(烟) OR (菸)'],
-      ['簡體<->繁體TW', '启 / 啟', '(启) OR (啟)'],
+      ['簡體-繁體HK', '烟 / 菸', '(烟) OR (菸)'],
+      ['簡體-繁體TW', '启 / 啟', '(启) OR (啟)'],
       ['全部地區', '里 / 裏 / 裡', '(里) OR (裏) OR (裡)'],
-      ['*繁體HK<->繁體TW', '裏 / 裡', '(裏) OR (裡)'],
+      ['*繁體HK-繁體TW', '裏 / 裡', '(裏) OR (裡)'],
     ];
     for (const cells of rows) {
       const tr = tbody.createEl('tr');
