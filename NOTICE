@@ -1,0 +1,10 @@
+Unified Chinese-characters Searcher (UCCS)
+Copyright 2026 York Li
+
+This software includes character mapping data derived from
+OpenCC (https://github.com/BYVoid/OpenCC),
+which is licensed under the Apache License, Version 2.0.
+
+The mapping data has been extracted from OpenCC's dictionary files
+and reformatted for use within this plugin. The original mapping
+relationships are unmodified.

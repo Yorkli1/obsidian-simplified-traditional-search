@@ -4,7 +4,7 @@
 
 ![Obsidian](https://img.shields.io/badge/Obsidian-Plugin-7C3AED?logo=obsidian)
 ![Version](https://img.shields.io/github/v/release/Yorkli1/Unified-Chinese-characters-Searcher)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![License](https://img.shields.io/badge/License-Apache%202.0-blue)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E5B?logo=ko-fi)](https://ko-fi.com/omgyork)
 
 ---
@@ -60,7 +60,7 @@ python3 scripts/gen_mappings.py
 
 ## 許可證
 
-MIT License。字符映射數據源於 [OpenCC](https://github.com/BYVoid/OpenCC)（Apache License 2.0）——從其官方字典文件提取簡繁及地區變體映射，本插件僅做格式轉換，不修改原始映射關係。
+Apache License 2.0。字符映射數據源於 [OpenCC](https://github.com/BYVoid/OpenCC)（Apache License 2.0）——從其官方字典文件提取簡繁及地區變體映射，本插件僅做格式轉換，不修改原始映射關係。
 
 ---
 

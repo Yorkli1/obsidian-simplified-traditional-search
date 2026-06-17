@@ -197,7 +197,7 @@ export class STSearchSettingTab extends PluginSettingTab {
           .setButtonText('前往 GitHub')
           .setCta()
           .onClick(() => {
-            open('https://github.com/Yorkli1/obsidian-simplified-traditional-search');
+            open('https://github.com/Yorkli1/Unified-Chinese-Characters-Searcher');
           })
       );
 
