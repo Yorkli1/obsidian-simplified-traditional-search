@@ -64,6 +64,16 @@ def build_t2s_region(s2t_region):
         t2s[trad] = simp
     return t2s
 
+def build_hk_tw_bidi(hk_var, tw_var):
+    """Build bidirectional HK↔TW mapping where they differ."""
+    bidi = {}
+    for gen, hk_form in hk_var.items():
+        tw_form = tw_var.get(gen, gen)
+        if hk_form != tw_form:
+            bidi[hk_form] = tw_form
+            bidi[tw_form] = hk_form
+    return bidi
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 print("Downloading STCharacters.txt (simplified → general traditional)...")
@@ -101,6 +111,9 @@ for simp, general in s2t_general.items():
     for trad in all_trad:
         t2s_all[trad] = simp  # each trad form maps back to simplified
 
+# Build HK↔TW bidirectional mapping
+hk_tw_bidi = build_hk_tw_bidi(hk_variants, tw_variants)
+
 os.makedirs('../src/data', exist_ok=True)
 
 def write_json(name, data):
@@ -118,6 +131,7 @@ write_json('t2tw.json', t2s_tw)
 write_json('s2all.json', s2t_all)
 write_json('hk_variants.json', hk_variants)
 write_json('tw_variants.json', tw_variants)
+write_json('hk_tw.json', hk_tw_bidi)
 
 print(f"\n{'='*50}")
 print(f"Files written:")

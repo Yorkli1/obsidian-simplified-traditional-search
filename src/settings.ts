@@ -62,6 +62,7 @@ export class STSearchSettingTab extends PluginSettingTab {
           .addOption('hk', '簡體-繁體（香港）')
           .addOption('tw', '簡體-繁體（台灣）')
           .addOption('all', '全部地區')
+          .addOption('tw-hk', '繁體HK-繁體TW *')
           .setValue(this.plugin.settings.region)
           .onChange(async value => {
             this.plugin.settings.region = value as Region;
@@ -82,22 +83,23 @@ export class STSearchSettingTab extends PluginSettingTab {
       font-size: var(--font-smaller);
       line-height: 1.6;
     `;
-    regionNote.createEl('p', { text: '不同地區的繁體寫法差異範例：' });
+    regionNote.createEl('p', { text: '不同模式的匹配方式：' });
 
     const table = regionNote.createEl('table');
     table.style.cssText = 'width:100%; border-collapse: collapse;';
     const thead = table.createEl('thead');
     const headerRow = thead.createEl('tr');
-    const headers = ['用戶輸入', '簡體-繁體HK', '簡體-繁體TW', '全部地區'];
+    const headers = ['模式', '用戶輸入(簡/繁)', '展開結果'];
     for (const h of headers) {
       headerRow.createEl('th', { text: h }).style.cssText = 'text-align:left; padding:4px 8px; border-bottom:1px solid var(--background-modifier-border);';
     }
 
     const tbody = table.createEl('tbody');
     const rows = [
-      ['烟（簡）', '菸', '煙', '烟、菸、煙'],
-      ['裏（繁HK）', '裏', '裡', '里、裏、裡'],
-      ['啟（繁TW）', '啓', '啟', '启、啓、啟'],
+      ['簡體-繁體HK', '烟 / 菸', '(烟) OR (菸)'],
+      ['簡體-繁體TW', '启 / 啟', '(启) OR (啟)'],
+      ['全部地區', '里 / 裏 / 裡', '(里) OR (裏) OR (裡)'],
+      ['繁體HK-繁體TW *', '裏 / 裡', '(裏) OR (裡)'],
     ];
     for (const cells of rows) {
       const tr = tbody.createEl('tr');
@@ -105,8 +107,6 @@ export class STSearchSettingTab extends PluginSettingTab {
         tr.createEl('td', { text: cell }).style.cssText = 'padding:2px 8px;';
       }
     }
-
-    // ════════════════════════════════════════
     //  高級功能
     // ════════════════════════════════════════
     containerEl.createEl('h3', { text: '高級功能' });

@@ -7,8 +7,9 @@ import t2tw from './data/t2tw.json';
 import s2all from './data/s2all.json';
 import hkVariants from './data/hk_variants.json';
 import twVariants from './data/tw_variants.json';
+import hkTwBidi from './data/hk_tw.json';
 
-export type Region = 'hk' | 'tw' | 'all';
+export type Region = 'hk' | 'tw' | 'all' | 'tw-hk';
 
 export interface VariantStats {
   s2tCount: number;
@@ -65,6 +66,13 @@ export class ChineseConverter {
     // 繁→簡方向：找簡體寫法
     const simp = t2sMap.get(char);
     if (simp !== undefined) variants.add(simp);
+
+    // HK↔TW 模式：只找繁體變體，不涉及簡體
+    if (this.region === 'tw-hk') {
+      const hkTwMap = new Map(Object.entries(hkTwBidi));
+      const counterpart = hkTwMap.get(char);
+      if (counterpart) variants.add(counterpart);
+    }
 
     return [...variants].filter(v => v !== char);
   }
