@@ -96,9 +96,8 @@ export class STSearchSettingTab extends PluginSettingTab {
     const tbody = table.createEl('tbody');
     const rows = [
       ['里', '裏', '裡', '裏、裡'],
-      ['峰', '峯', '峰', '峯、峰'],
-      ['群', '羣', '群', '羣、群'],
-      ['线', '線', '綫', '線、綫'],
+      ['启', '啓', '啟', '啓、啟'],
+      ['说', '說', '説', '說、説'],
     ];
     for (const [input, hk, tw, all] of rows) {
       const tr = tbody.createEl('tr');
