@@ -148,16 +148,30 @@ export class STSearchSettingTab extends PluginSettingTab {
       text: '插件僅處理字對字轉換，不含短語/慣用語層級。完全離線運行，零外部請求。',
     });
 
-    const githubRow = about.createEl('p');
-    githubRow.createEl('span', { text: 'GitHub: ' });
-    const githubLink = githubRow.createEl('a', {
-      text: 'github.com/Yorkli1/obsidian-simplified-traditional-search',
-      href: 'https://github.com/Yorkli1/obsidian-simplified-traditional-search',
-    });
-    githubLink.style.cssText = `
-      display: inline-block;
-      margin-top: 4px;
-      color: var(--text-accent);
-    `;
+    // ── GitHub 按鈕 ──
+    new Setting(containerEl)
+      .setName('GitHub')
+      .setDesc('原始碼、議題回報、貢獻')
+      .addButton(button =>
+        button
+          .setButtonText('前往 GitHub')
+          .setCta()
+          .onClick(() => {
+            open('https://github.com/Yorkli1/obsidian-simplified-traditional-search');
+          })
+      );
+
+    // ── Ko-fi 贊助 ──
+    new Setting(containerEl)
+      .setName('Ko-fi')
+      .setDesc('如果你喜歡這個插件，可以請我喝杯咖啡 ☕')
+      .addButton(button =>
+        button
+          .setButtonText('請我喝咖啡')
+          .setCta()
+          .onClick(() => {
+            open('https://ko-fi.com/omgyork');
+          })
+      );
   }
 }
