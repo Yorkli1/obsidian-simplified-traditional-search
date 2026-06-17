@@ -88,23 +88,22 @@ export class STSearchSettingTab extends PluginSettingTab {
     table.style.cssText = 'width:100%; border-collapse: collapse;';
     const thead = table.createEl('thead');
     const headerRow = thead.createEl('tr');
-    headerRow.createEl('th', { text: '輸入' }).style.cssText = 'text-align:left; padding:4px 8px; border-bottom:1px solid var(--background-modifier-border);';
-    headerRow.createEl('th', { text: '香港' }).style.cssText = 'text-align:left; padding:4px 8px; border-bottom:1px solid var(--background-modifier-border);';
-    headerRow.createEl('th', { text: '台灣' }).style.cssText = 'text-align:left; padding:4px 8px; border-bottom:1px solid var(--background-modifier-border);';
-    headerRow.createEl('th', { text: '全部地區' }).style.cssText = 'text-align:left; padding:4px 8px; border-bottom:1px solid var(--background-modifier-border);';
+    const headers = ['輸入', '國內', '香港', '台灣', '全部地區'];
+    for (const h of headers) {
+      headerRow.createEl('th', { text: h }).style.cssText = 'text-align:left; padding:4px 8px; border-bottom:1px solid var(--background-modifier-border);';
+    }
 
     const tbody = table.createEl('tbody');
     const rows = [
-      ['里', '裏', '裡', '裏、裡'],
-      ['启', '啓', '啟', '啓、啟'],
-      ['说', '說', '説', '說、説'],
+      ['烟（簡）', '烟', '菸', '煙', '烟、菸、煙'],
+      ['裏（繁HK）', '里', '裏', '裡', '里、裏、裡'],
+      ['啟（繁TW）', '启', '啓', '啟', '启、啓、啟'],
     ];
-    for (const [input, hk, tw, all] of rows) {
+    for (const cells of rows) {
       const tr = tbody.createEl('tr');
-      tr.createEl('td', { text: input }).style.cssText = 'padding:2px 8px;';
-      tr.createEl('td', { text: hk }).style.cssText = 'padding:2px 8px;';
-      tr.createEl('td', { text: tw }).style.cssText = 'padding:2px 8px;';
-      tr.createEl('td', { text: all }).style.cssText = 'padding:2px 8px;';
+      for (const cell of cells) {
+        tr.createEl('td', { text: cell }).style.cssText = 'padding:2px 8px;';
+      }
     }
 
     // ════════════════════════════════════════
