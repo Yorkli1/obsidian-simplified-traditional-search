@@ -3,7 +3,7 @@
 > **在 Obsidian 全局搜索中自動匹配簡體與繁體中文 — 輸入「剑」也搜得到「劍」**
 
 ![Obsidian](https://img.shields.io/badge/Obsidian-Plugin-7C3AED?logo=obsidian)
-![Version](https://img.shields.io/github/v/release/Yorkli1/obsidian-cjk-search)
+![Version](https://img.shields.io/github/v/release/Yorkli1/obsidian-simplified-traditional-search)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ---
@@ -28,10 +28,10 @@
 ## 📦 安裝
 
 ### 手動安裝
-1. 下載最新的 [Release](https://github.com/Yorkli1/obsidian-cjk-search/releases)
-2. 解壓到你的 vault：`.obsidian/plugins/cjk-search/`
+1. 下載最新的 [Release](https://github.com/Yorkli1/obsidian-simplified-traditional-search/releases)
+2. 解壓到你的 vault：`.obsidian/plugins/simplified-traditional-search/`
 3. 在 Obsidian → 設定 → 第三方插件 → **重新載入插件**
-4. 啟用 **CJK Search**
+4. 啟用 **Simplified-Traditional Search**
 
 ### 從源碼構建
 ```bash
@@ -39,7 +39,7 @@ git clone https://github.com/Yorklii/Obsidian-簡繁體全局搜索.git
 cd Obsidian-簡繁體全局搜索
 npm install
 npm run build
-# 將 main.js + manifest.json + styles.css 複製到 vault/.obsidian/plugins/cjk-search/
+# 將 main.js + manifest.json + styles.css 複製到 vault/.obsidian/plugins/simplified-traditional-search/
 ```
 
 ## ⚙️ 設定

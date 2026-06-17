@@ -1,10 +1,10 @@
 import { Plugin, WorkspaceLeaf } from 'obsidian';
 import { SearchHook } from './search-hook';
-import { CJKSearchSettings, CJKSearchSettingTab, DEFAULT_SETTINGS } from './settings';
+import { STSearchSettings, STSearchSettingTab, DEFAULT_SETTINGS } from './settings';
 import { ChineseConverter, Direction } from './converter';
 
-export default class CJKSearchPlugin extends Plugin {
-  settings!: CJKSearchSettings;
+export default class STSearchPlugin extends Plugin {
+  settings!: STSearchSettings;
   private searchHook: SearchHook | null = null;
   private converter!: ChineseConverter;
 
@@ -13,7 +13,7 @@ export default class CJKSearchPlugin extends Plugin {
     await this.loadSettings();
 
     // 註冊設置頁
-    this.addSettingTab(new CJKSearchSettingTab(this.app, this));
+    this.addSettingTab(new STSearchSettingTab(this.app, this));
 
     // 監聽佈局變化 — 搜索面板可能在不同時候創建
     this.registerEvent(
@@ -34,13 +34,13 @@ export default class CJKSearchPlugin extends Plugin {
     setTimeout(() => this._tryHook(), 1500);
     setTimeout(() => this._tryHook(), 3000);
 
-    console.log('CJK Search: plugin loaded');
+    console.log('Simplified-Traditional Search: plugin loaded');
   }
 
   onunload(): void {
     this.searchHook?.unhook();
     this.searchHook = null;
-    console.log('CJK Search: plugin unloaded');
+    console.log('Simplified-Traditional Search: plugin unloaded');
   }
 
   async loadSettings(): Promise<void> {

@@ -1,7 +1,7 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import type CJKSearchPlugin from './main';
+import type STSearchPlugin from './main';
 
-export interface CJKSearchSettings {
+export interface STSearchSettings {
   /** 轉換方向 */
   direction: 's2t' | 't2s' | 'bidirectional';
   /** 是否啟用 */
@@ -10,16 +10,16 @@ export interface CJKSearchSettings {
   keepOperators: boolean;
 }
 
-export const DEFAULT_SETTINGS: CJKSearchSettings = {
+export const DEFAULT_SETTINGS: STSearchSettings = {
   direction: 'bidirectional',
   enabled: true,
   keepOperators: true,
 };
 
-export class CJKSearchSettingTab extends PluginSettingTab {
-  private plugin: CJKSearchPlugin;
+export class STSearchSettingTab extends PluginSettingTab {
+  private plugin: STSearchPlugin;
 
-  constructor(app: App, plugin: CJKSearchPlugin) {
+  constructor(app: App, plugin: STSearchPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -28,7 +28,7 @@ export class CJKSearchSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl('h2', { text: 'CJK Search — 繁簡搜索統一' });
+    containerEl.createEl('h2', { text: 'Simplified-Traditional Search — 繁簡搜索統一' });
 
     containerEl.createEl('p', {
       text: '自動在全局搜索中展開簡體/繁體中文字符，讓搜索不再因繁簡不同而漏掉結果。',
@@ -37,7 +37,7 @@ export class CJKSearchSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('啟用插件')
-      .setDesc('控制 CJK Search 是否處理搜索查詢')
+      .setDesc('控制 Simplified-Traditional Search 是否處理搜索查詢')
       .addToggle(toggle =>
         toggle
           .setValue(this.plugin.settings.enabled)

@@ -1,5 +1,5 @@
 {
-  "name": "obsidian-cjk-search",
+  "name": "obsidian-simplified-traditional-search",
   "version": "1.0.0",
   "description": "Obsidian plugin for Simplified/Traditional Chinese search unification",
   "main": "main.js",
@@ -8,7 +8,13 @@
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
     "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
-  "keywords": ["obsidian", "plugin", "chinese", "search", "cjk"],
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "chinese",
+    "search",
+    "cjk"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
