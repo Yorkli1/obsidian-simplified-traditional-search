@@ -62,7 +62,7 @@ export class STSearchSettingTab extends PluginSettingTab {
           .addOption('hk', '簡體-繁體（香港）')
           .addOption('tw', '簡體-繁體（台灣）')
           .addOption('all', '全部地區')
-          .addOption('tw-hk', '繁體HK-繁體TW *')
+          .addOption('tw-hk', '*繁體HK<->繁體TW')
           .setValue(this.plugin.settings.region)
           .onChange(async value => {
             this.plugin.settings.region = value as Region;
@@ -99,7 +99,7 @@ export class STSearchSettingTab extends PluginSettingTab {
       ['簡體-繁體HK', '烟 / 菸', '(烟) OR (菸)'],
       ['簡體-繁體TW', '启 / 啟', '(启) OR (啟)'],
       ['全部地區', '里 / 裏 / 裡', '(里) OR (裏) OR (裡)'],
-      ['繁體HK-繁體TW *', '裏 / 裡', '(裏) OR (裡)'],
+      ['*繁體HK<->繁體TW', '裏 / 裡', '(裏) OR (裡)'],
     ];
     for (const cells of rows) {
       const tr = tbody.createEl('tr');
@@ -107,6 +107,8 @@ export class STSearchSettingTab extends PluginSettingTab {
         tr.createEl('td', { text: cell }).style.cssText = 'padding:2px 8px;';
       }
     }
+
+    regionNote.createEl('p', { text: '* 香港繁體和台灣繁體大部分的字寫法相同。' });
     //  高級功能
     // ════════════════════════════════════════
     containerEl.createEl('h3', { text: '高級功能' });
