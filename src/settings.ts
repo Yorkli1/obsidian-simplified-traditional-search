@@ -51,10 +51,15 @@ export class STSearchSettingTab extends PluginSettingTab {
           })
       );
 
-    containerEl.createEl('p', {
-      text: '匹配方式：雙向　｜　輸入「剑」或「劍」→ 結果同時包含簡體與繁體',
-      cls: 'setting-item-description',
-    });
+    new Setting(containerEl)
+      .setName('匹配方式')
+      .setDesc('雙向：輸入「剑」或「劍」，結果同時包含簡體與繁體。')
+      .addDropdown(dropdown =>
+        dropdown
+          .addOption('bidirectional', '雙向')
+          .setValue('bidirectional')
+          .setDisabled(true)
+      );
 
     // ════════════════════════════════════════
     //  高級設置
@@ -140,8 +145,10 @@ export class STSearchSettingTab extends PluginSettingTab {
       text: '插件僅處理字對字轉換，不含短語/慣用語層級。完全離線運行，零外部請求。',
     });
 
-    const githubLink = about.createEl('a', {
-      text: '📦 GitHub 原始碼',
+    const githubRow = about.createEl('p');
+    githubRow.createEl('span', { text: 'GitHub: ' });
+    const githubLink = githubRow.createEl('a', {
+      text: 'github.com/Yorkli1/obsidian-simplified-traditional-search',
       href: 'https://github.com/Yorkli1/obsidian-simplified-traditional-search',
     });
     githubLink.style.cssText = `
@@ -153,27 +160,12 @@ export class STSearchSettingTab extends PluginSettingTab {
     // ── 使用範例 ──
     containerEl.createEl('h3', { text: '使用範例' });
 
-    const examples = containerEl.createEl('div', { cls: 'setting-item' });
-    examples.createEl('p', { text: '在全局搜索（Cmd+Shift+F）中輸入：' });
-
-    const exampleList = examples.createEl('ul');
-    const addExample = (input: string, result: string) => {
-      const li = exampleList.createEl('li');
-      li.createEl('code', { text: input });
-      li.appendText(' → ');
-      li.createEl('code', { text: result });
-    };
-
-    addExample('剑', '(剑) OR (劍)');
-    addExample('剑法', '(剑法) OR (劍法)');
-    addExample('龍門', '(龍門) OR (龙门)');
-    addExample('學習 Python', '(學習) OR (学习) Python');
-
-    examples.createEl('p', {
-      text: '連續打字時插件會等你停頓後再展開，不用擔心打到一半被打斷。',
+    const example = containerEl.createEl('div', { cls: 'setting-item' });
+    example.createEl('p', {
+      text: '在全局搜索中輸入簡體或繁體，搜索結果都會包含簡體和繁體。',
     });
-    examples.createEl('p', {
-      text: '展開後可以繼續追加文字，插件會自動重新整理為完整的繁簡查詢。',
+    example.createEl('p', {
+      text: '例如，搜索「剑」→ 返回 剑法.md 和 劍法.md',
     });
   }
 }
