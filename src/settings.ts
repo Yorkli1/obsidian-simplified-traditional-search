@@ -59,8 +59,8 @@ export class STSearchSettingTab extends PluginSettingTab {
       .setDesc('選擇繁簡轉換的地區變體。不同地區的繁體寫法略有差異。')
       .addDropdown(dropdown =>
         dropdown
-          .addOption('hk', '簡體-繁體（香港）')
-          .addOption('tw', '簡體-繁體（台灣）')
+          .addOption('hk', '簡體<->繁體（香港）')
+          .addOption('tw', '簡體<->繁體（台灣）')
           .addOption('all', '全部地區')
           .addOption('tw-hk', '*繁體HK<->繁體TW')
           .setValue(this.plugin.settings.region)
@@ -96,8 +96,8 @@ export class STSearchSettingTab extends PluginSettingTab {
 
     const tbody = table.createEl('tbody');
     const rows = [
-      ['簡體-繁體HK', '烟 / 菸', '(烟) OR (菸)'],
-      ['簡體-繁體TW', '启 / 啟', '(启) OR (啟)'],
+      ['簡體<->繁體HK', '烟 / 菸', '(烟) OR (菸)'],
+      ['簡體<->繁體TW', '启 / 啟', '(启) OR (啟)'],
       ['全部地區', '里 / 裏 / 裡', '(里) OR (裏) OR (裡)'],
       ['*繁體HK<->繁體TW', '裏 / 裡', '(裏) OR (裡)'],
     ];
