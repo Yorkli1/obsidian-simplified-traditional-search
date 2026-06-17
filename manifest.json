@@ -1,7 +1,7 @@
 {
 	"id": "simplified-traditional-search",
 	"name": "Unified Chinese-characters Searcher (UCCS)",
-	"version": "2.0.0",
+	"version": "1.0.0",
 	"minAppVersion": "1.5.0",
 	"description": "在 Obsidian 全局搜索中自動匹配多種地區的中文 — 輸入任何一個中文字都能找到所有對應中文的結果",
 	"author": "York Li",
