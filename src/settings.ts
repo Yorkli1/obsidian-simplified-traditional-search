@@ -59,8 +59,8 @@ export class STSearchSettingTab extends PluginSettingTab {
       .setDesc('選擇繁簡轉換的地區變體。不同地區的繁體寫法略有差異。')
       .addDropdown(dropdown =>
         dropdown
-          .addOption('hk', '繁體（香港）')
-          .addOption('tw', '繁體（台灣）')
+          .addOption('hk', '簡體-繁體（香港）')
+          .addOption('tw', '簡體-繁體（台灣）')
           .addOption('all', '全部地區')
           .setValue(this.plugin.settings.region)
           .onChange(async value => {
@@ -88,16 +88,16 @@ export class STSearchSettingTab extends PluginSettingTab {
     table.style.cssText = 'width:100%; border-collapse: collapse;';
     const thead = table.createEl('thead');
     const headerRow = thead.createEl('tr');
-    const headers = ['輸入', '國內', '香港', '台灣', '全部地區'];
+    const headers = ['用戶輸入', '簡體-繁體HK', '簡體-繁體TW', '全部地區'];
     for (const h of headers) {
       headerRow.createEl('th', { text: h }).style.cssText = 'text-align:left; padding:4px 8px; border-bottom:1px solid var(--background-modifier-border);';
     }
 
     const tbody = table.createEl('tbody');
     const rows = [
-      ['烟（簡）', '烟', '菸', '煙', '烟、菸、煙'],
-      ['裏（繁HK）', '里', '裏', '裡', '里、裏、裡'],
-      ['啟（繁TW）', '启', '啓', '啟', '启、啓、啟'],
+      ['烟（簡）', '菸', '煙', '烟、菸、煙'],
+      ['裏（繁HK）', '裏', '裡', '里、裏、裡'],
+      ['啟（繁TW）', '啓', '啟', '启、啓、啟'],
     ];
     for (const cells of rows) {
       const tr = tbody.createEl('tr');
