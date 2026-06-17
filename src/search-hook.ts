@@ -10,8 +10,6 @@ export class SearchHook {
   private converter: ChineseConverter;
   private inputEl: HTMLInputElement | null = null;
   private isUpdating = false;
-  /** 插件最後一次展開後的值（用於檢測用戶是否在刪除） */
-  private lastExpandedValue = '';
   /** 用戶最後一次手動輸入後的值（排除插件自動展開） */
   private lastUserValue = '';
   private observeTimer: number | null = null;
@@ -113,26 +111,21 @@ export class SearchHook {
     // ── 安全檢查 1：值沒變 → 跳過 ──
     if (currentValue === this.lastUserValue) return;
 
-    // ── 安全檢查 2：值變短了（用戶在退格刪除我們展開的內容）→ 跳過 ──
-    if (this.lastExpandedValue && currentValue.length < this.lastExpandedValue.length) {
-      // 但如果用戶刪到完全不包含展開模式了（清空後重新輸入），重置狀態
-      if (!/\(.*OR/i.test(currentValue)) {
-        this.lastExpandedValue = '';
-      } else {
-        this.lastUserValue = currentValue;
-        return;
-      }
+    // ── 安全檢查 2：值變短了（用戶在退格刪除）→ 跳過，不重新展開 ──
+    if (currentValue.length < this.lastUserValue.length) {
+      this.lastUserValue = currentValue;
+      return;
     }
 
     // ── 安全檢查 3：游標不在末尾（用戶在中間編輯）→ 跳過 ──
-    // selectionStart 為 null 時（如輸入框未聚焦），不阻擋
     if (input.selectionStart !== null && input.selectionStart !== currentValue.length) {
       this.lastUserValue = currentValue;
       return;
     }
 
-    // ── 安全檢查 4：已經被我們展開過 → 跳過 ──
-    if (this._looksAlreadyExpanded(currentValue)) {
+    // ── 安全檢查 4：查詢包含括號或 OR → 已是複雜/展開過的查詢，不自動展開 ──
+    //    正常用戶搜索不會打括號，只有我們展開時才會
+    if (/[()]/.test(currentValue)) {
       this.lastUserValue = currentValue;
       return;
     }
@@ -143,13 +136,7 @@ export class SearchHook {
       return;
     }
 
-    // ── 安全檢查 6：查詢中有 OR → 已是複雜查詢，不自動展開 ──
-    if (/\bOR\b/i.test(currentValue)) {
-      this.lastUserValue = currentValue;
-      return;
-    }
-
-    // ── 安全檢查 7：不需要轉換（全是同方向的字） → 跳過 ──
+    // ── 安全檢查 6：不需要轉換（全是同方向的字） → 跳過 ──
     if (!this.converter.needsConversion(currentValue, this.direction)) {
       this.lastUserValue = currentValue;
       return;
@@ -161,7 +148,6 @@ export class SearchHook {
 
     // 記住展開前的值，用於檢測刪除
     this.lastUserValue = currentValue;
-    this.lastExpandedValue = expanded;
 
     // 更新搜索框
     this.isUpdating = true;
@@ -170,17 +156,6 @@ export class SearchHook {
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     this.isUpdating = false;
-  }
-
-  /**
-   * 檢測查詢是否已經被展開過
-   * 
-   * 匹配我們插入的典型模式: (原詞) OR (轉換詞)
-   * 例如: (剑) OR (劍), (剑法) OR (劍法)
-   */
-  private _looksAlreadyExpanded(query: string): boolean {
-    // 檢查典型展開模式: (詞) OR (詞)
-    return /\([^)]+\)\s+OR\s+\([^)]+\)/.test(query);
   }
 
   /**
