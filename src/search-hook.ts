@@ -254,18 +254,37 @@ export class SearchHook {
         }
 
         // 字符層級：逐字轉換
-        // 將整串文字統一轉為另一種寫法
-        // 例如: 杖与剑 → (杖与剑) OR (杖與劍)
+        // 每個有變體的位置產生替代結果
+        // 例如: 杖与剑 → (杖与剑) OR (杖與剑) OR (杖与劍)
+        // 例如: 里 (全部地區) → (里) OR (裏) OR (裡)
         const chars = [...token.value];
-        const convertedChars = chars.map(ch => {
-          const v = this.converter.getVariants(ch);
-          // 取第一個變體（如果有）；否則保持原字
-          return v.length > 0 ? v[0] : ch;
-        });
-        const converted = convertedChars.join('');
+        const variantPositions: { idx: number; variants: string[] }[] = [];
 
-        if (converted !== token.value) {
-          if (!terms.includes(converted)) terms.push(converted);
+        for (let i = 0; i < chars.length; i++) {
+          const v = this.converter.getVariants(chars[i]);
+          if (v.length > 0) {
+            variantPositions.push({ idx: i, variants: v });
+          }
+        }
+
+        // 單字元多變體 → 每種變體各一個結果
+        // 多字元 → 只取第一個變體做整串統一轉換
+        if (chars.length === 1) {
+          for (const { variants } of variantPositions) {
+            for (const v of variants) {
+              if (!terms.includes(v)) terms.push(v);
+            }
+          }
+        } else if (variantPositions.length > 0) {
+          // 多字元：每種變體文字用第一個變體轉換
+          const convertedChars = chars.map(ch => {
+            const v = this.converter.getVariants(ch);
+            return v.length > 0 ? v[0] : ch;
+          });
+          const converted = convertedChars.join('');
+          if (converted !== token.value && !terms.includes(converted)) {
+            terms.push(converted);
+          }
         }
 
         if (terms.length > 1) {

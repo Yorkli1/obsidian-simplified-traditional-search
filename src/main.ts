@@ -11,6 +11,7 @@ export default class STSearchPlugin extends Plugin {
   async onload(): Promise<void> {
     this.converter = new ChineseConverter();
     await this.loadSettings();
+    this.converter.setRegion(this.settings.region);
 
     this.addSettingTab(new STSearchSettingTab(this.app, this));
 
@@ -68,6 +69,7 @@ export default class STSearchPlugin extends Plugin {
       this.settings.debounceMs,
       this.settings.phraseEnabled,
     );
+    this.converter.setRegion(this.settings.region);
     if (hook.hook()) this.searchHook = hook;
   }
 }
