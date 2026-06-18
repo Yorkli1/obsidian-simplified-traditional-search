@@ -254,9 +254,41 @@ export class SearchHook {
         }
 
         // 字符層級：逐字轉換
-        const charVariants = this.converter.getVariants(token.value);
-        for (const v of charVariants) {
-          if (!terms.includes(v)) terms.push(v);
+        // 找出每個有變體的字符，生成所有排列的結果
+        const chars = [...token.value];
+        const altOptions: string[][] = chars.map(ch => {
+          const v = this.converter.getVariants(ch);
+          return v.length > 0 ? [ch, ...v] : [ch];
+        });
+
+        // 如果有至少一個字符有變體，建立所有排列組合
+        const hasVariants = altOptions.some((opts, i) =>
+          opts.length > 1 || opts[0] !== chars[i]
+        );
+
+        if (hasVariants) {
+          // 遞迴生成所有排列
+          const allAlts: string[] = [];
+          const build = (idx: number, acc: string[]) => {
+            if (idx >= chars.length) {
+              const alt = acc.join('');
+              if (alt !== token.value) allAlts.push(alt);
+              return;
+            }
+            const seen = new Set<string>();
+            for (const c of altOptions[idx]) {
+              if (seen.has(c)) continue;
+              seen.add(c);
+              acc.push(c);
+              build(idx + 1, acc);
+              acc.pop();
+            }
+          };
+          build(0, []);
+
+          for (const alt of allAlts) {
+            if (!terms.includes(alt)) terms.push(alt);
+          }
         }
 
         if (terms.length > 1) {
