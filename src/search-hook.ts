@@ -254,11 +254,7 @@ export class SearchHook {
         }
 
         // 字符層級：逐字轉換
-        // 每個有變體的位置產生替代結果
-        // 例如: 杖与剑 → (杖与剑) OR (杖與剑) OR (杖与劍) OR (杖與劍)
-        // 例如: 里面 (全部地區) → (里面) OR (裏面) OR (裡面)
         const chars = [...token.value];
-
         const allAlts: string[] = [];
 
         // 逐位替代：每個變體位置各產生一個結果
@@ -291,6 +287,38 @@ export class SearchHook {
         if (terms.length > 1) {
           newTokens.push(`(${terms.join(') OR (')})`);
           continue;
+        }
+      } else if (token.type === 'operator' && this.keepOperators) {
+        // 轉換運算符後的值，例如 tags:动漫 → (tags:动漫) OR (tags:動漫)
+        const colonIdx = token.value.indexOf(':');
+        if (colonIdx > 0) {
+          const prefix = token.value.slice(0, colonIdx + 1);
+          const opValue = token.value.slice(colonIdx + 1);
+          if (this.converter.hasChinese(opValue)) {
+            const opChars = [...opValue];
+            const opAlts: string[] = [];
+
+            for (let i = 0; i < opChars.length; i++) {
+              const variants = this.converter.getVariants(opChars[i]);
+              for (const v of variants) {
+                const alt = prefix + opChars.slice(0, i).join('') + v + opChars.slice(i + 1).join('');
+                if (alt !== token.raw && !opAlts.includes(alt)) opAlts.push(alt);
+              }
+            }
+
+            if (opChars.length > 1) {
+              const fullConverted = prefix + opChars.map(ch => {
+                const v = this.converter.getVariants(ch);
+                return v.length > 0 ? v[0] : ch;
+              }).join('');
+              if (fullConverted !== token.raw && !opAlts.includes(fullConverted)) opAlts.push(fullConverted);
+            }
+
+            if (opAlts.length > 0) {
+              newTokens.push(`(${[token.raw, ...opAlts].join(') OR (')})`);
+              continue;
+            }
+          }
         }
       }
       newTokens.push(token.raw);
