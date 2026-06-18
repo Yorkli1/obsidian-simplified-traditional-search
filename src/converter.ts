@@ -82,7 +82,19 @@ export class ChineseConverter {
 
     // 繁→簡方向：找簡體寫法
     const simp = t2sMap.get(char);
-    if (simp !== undefined) variants.add(simp);
+    if (simp !== undefined) {
+      variants.add(simp);
+      // 從簡體再找一次模式對應的繁體（連鎖反應）
+      // 例如: 裡 → 里 → 裏 (HK模式)
+      const tradFromSimp = s2tMap.get(simp);
+      if (tradFromSimp !== undefined) {
+        if (Array.isArray(tradFromSimp)) {
+          for (const t of tradFromSimp) variants.add(t);
+        } else {
+          variants.add(tradFromSimp);
+        }
+      }
+    }
 
     // HK↔TW 模式：只找繁體變體，不涉及簡體
     if (this.region === 'tw-hk') {
