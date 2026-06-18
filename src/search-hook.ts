@@ -163,6 +163,12 @@ export class SearchHook {
       return;
     }
 
+    // 5b. 有 OR 關鍵字 → 複雜查詢，不展開（防止二次展開）
+    if (/\bOR\b/i.test(currentValue)) {
+      this.lastUserValue = currentValue;
+      return;
+    }
+
     // 6. 沒有中文
     if (!this.converter.hasChinese(currentValue)) {
       this.lastUserValue = currentValue;
@@ -225,7 +231,7 @@ export class SearchHook {
     this.isUpdating = true;
     input.value = expanded;
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
 
     if (this.silentMode) {
       requestAnimationFrame(() => {
@@ -253,31 +259,25 @@ export class SearchHook {
           }
         }
 
-        // 字符層級：逐字轉換
+        // 字符層級：轉換
         const chars = [...token.value];
         const allAlts: string[] = [];
 
-        // 逐位替代：每個變體位置各產生一個結果
-        for (let i = 0; i < chars.length; i++) {
-          const variants = this.converter.getVariants(chars[i]);
+        if (chars.length === 1) {
+          // 單字元：每種變體一個結果
+          // 例如: 里 (全部地區) → (里) OR (裏) OR (裡)
+          const variants = this.converter.getVariants(chars[0]);
           for (const v of variants) {
-            const alt = chars.slice(0, i).join('') + v + chars.slice(i + 1).join('');
-            if (alt !== token.value && !allAlts.includes(alt)) {
-              allAlts.push(alt);
-            }
+            if (v !== token.value && !allAlts.includes(v)) allAlts.push(v);
           }
-        }
-
-        // 多字元且有多個變體位置時，加一個「全部轉換」版本
-        if (chars.length > 1) {
-          const convertedChars = chars.map(ch => {
+        } else {
+          // 多字元：整串統一轉換
+          // 例如: 一丝不挂 → (一丝不挂) OR (一絲不掛)
+          const converted = chars.map(ch => {
             const v = this.converter.getVariants(ch);
             return v.length > 0 ? v[0] : ch;
-          });
-          const fullAlt = convertedChars.join('');
-          if (fullAlt !== token.value && !allAlts.includes(fullAlt)) {
-            allAlts.push(fullAlt);
-          }
+          }).join('');
+          if (converted !== token.value) allAlts.push(converted);
         }
 
         for (const alt of allAlts) {
@@ -295,27 +295,12 @@ export class SearchHook {
           const prefix = token.value.slice(0, colonIdx + 1);
           const opValue = token.value.slice(colonIdx + 1);
           if (this.converter.hasChinese(opValue)) {
-            const opChars = [...opValue];
-            const opAlts: string[] = [];
-
-            for (let i = 0; i < opChars.length; i++) {
-              const variants = this.converter.getVariants(opChars[i]);
-              for (const v of variants) {
-                const alt = prefix + opChars.slice(0, i).join('') + v + opChars.slice(i + 1).join('');
-                if (alt !== token.raw && !opAlts.includes(alt)) opAlts.push(alt);
-              }
-            }
-
-            if (opChars.length > 1) {
-              const fullConverted = prefix + opChars.map(ch => {
-                const v = this.converter.getVariants(ch);
-                return v.length > 0 ? v[0] : ch;
-              }).join('');
-              if (fullConverted !== token.raw && !opAlts.includes(fullConverted)) opAlts.push(fullConverted);
-            }
-
-            if (opAlts.length > 0) {
-              newTokens.push(`(${[token.raw, ...opAlts].join(') OR (')})`);
+            const converted = prefix + [...opValue].map(ch => {
+              const v = this.converter.getVariants(ch);
+              return v.length > 0 ? v[0] : ch;
+            }).join('');
+            if (converted !== token.raw) {
+              newTokens.push(`(${[token.raw, converted].join(') OR (')})`);
               continue;
             }
           }
