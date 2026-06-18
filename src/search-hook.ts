@@ -254,22 +254,18 @@ export class SearchHook {
         }
 
         // 字符層級：逐字轉換
-        // 每個有變體的字符產生一個獨立替代結果
-        // 例如: 杖与剑 → (杖与剑) OR (杖與剑) OR (杖与劍)
+        // 將整串文字統一轉為另一種寫法
+        // 例如: 杖与剑 → (杖与剑) OR (杖與劍)
         const chars = [...token.value];
-        const allAlts: string[] = [];
-        for (let i = 0; i < chars.length; i++) {
-          const variants = this.converter.getVariants(chars[i]);
-          for (const v of variants) {
-            const alt = chars.slice(0, i).join('') + v + chars.slice(i + 1).join('');
-            if (alt !== token.value && !allAlts.includes(alt)) {
-              allAlts.push(alt);
-            }
-          }
-        }
+        const convertedChars = chars.map(ch => {
+          const v = this.converter.getVariants(ch);
+          // 取第一個變體（如果有）；否則保持原字
+          return v.length > 0 ? v[0] : ch;
+        });
+        const converted = convertedChars.join('');
 
-        for (const alt of allAlts) {
-          if (!terms.includes(alt)) terms.push(alt);
+        if (converted !== token.value) {
+          if (!terms.includes(converted)) terms.push(converted);
         }
 
         if (terms.length > 1) {
