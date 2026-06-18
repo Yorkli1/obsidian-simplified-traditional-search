@@ -8,7 +8,6 @@ export interface STSearchSettings {
   keepOperators: boolean;
   silentMode: boolean;
   debounceMs: number;
-  phraseEnabled: boolean;
 }
 
 export const DEFAULT_SETTINGS: STSearchSettings = {
@@ -17,7 +16,6 @@ export const DEFAULT_SETTINGS: STSearchSettings = {
   keepOperators: true,
   silentMode: false,
   debounceMs: 800,
-  phraseEnabled: false,
 };
 
 export class STSearchSettingTab extends PluginSettingTab {
@@ -169,20 +167,6 @@ export class STSearchSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.silentMode)
           .onChange(async value => {
             this.plugin.settings.silentMode = value;
-            await this.plugin.saveSettings();
-            this.plugin.reevaluate();
-          })
-      );
-
-    // ── 短語/成語轉換 ──
-    new Setting(containerEl)
-      .setName('短語/成語轉換')
-      .setDesc('開啟後成語、慣用語等固定搭配也會被轉換。例如：自行車 → 腳踏車。')
-      .addToggle(toggle =>
-        toggle
-          .setValue(this.plugin.settings.phraseEnabled)
-          .onChange(async value => {
-            this.plugin.settings.phraseEnabled = value;
             await this.plugin.saveSettings();
             this.plugin.reevaluate();
           })

@@ -19,7 +19,6 @@ export class SearchHook {
     private keepOperators: boolean,
     private silentMode: boolean,
     private debounceMs: number,
-    private phraseEnabled: boolean,
   ) {
   }
 
@@ -38,10 +37,6 @@ export class SearchHook {
 
   setDebounceMs(ms: number): void {
     this.debounceMs = ms;
-  }
-
-  setPhraseEnabled(enabled: boolean): void {
-    this.phraseEnabled = enabled;
   }
 
   hook(): boolean {
@@ -251,28 +246,18 @@ export class SearchHook {
       if (token.type === 'plain' && this.converter.hasChinese(token.value)) {
         const terms: string[] = [token.value];
 
-        // 短語層級：完整詞匹配
-        if (this.phraseEnabled) {
-          const phraseVariant = this.converter.getPhraseVariant(token.value);
-          if (phraseVariant && phraseVariant !== token.value) {
-            terms.push(phraseVariant);
-          }
-        }
-
         // 字符層級：轉換
         const chars = [...token.value];
         const allAlts: string[] = [];
 
         if (chars.length === 1) {
           // 單字元：每種變體一個結果
-          // 例如: 里 (全部地區) → (里) OR (裏) OR (裡)
           const variants = this.converter.getVariants(chars[0]);
           for (const v of variants) {
             if (v !== token.value && !allAlts.includes(v)) allAlts.push(v);
           }
         } else {
           // 多字元：整串統一轉換
-          // 例如: 一丝不挂 → (一丝不挂) OR (一絲不掛)
           const converted = chars.map(ch => {
             const v = this.converter.getVariants(ch);
             return v.length > 0 ? v[0] : ch;

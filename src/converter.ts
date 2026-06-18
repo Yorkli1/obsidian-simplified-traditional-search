@@ -8,8 +8,6 @@ import s2all from './data/s2all.json';
 import hkVariants from './data/hk_variants.json';
 import twVariants from './data/tw_variants.json';
 import hkTwBidi from './data/hk_tw.json';
-import stPhrases from './data/st_phrases.json';
-import tsPhrases from './data/ts_phrases.json';
 
 export type Region = 'hk' | 'tw' | 'all' | 'tw-hk';
 
@@ -29,8 +27,8 @@ export const variantStats: VariantStats = {
   t2sCount: Object.keys(t2sGen).length,
   hkVariantCount: Object.keys(hkVariants).length,
   twVariantCount: Object.keys(twVariants).length,
-  stPhraseCount: 49385,
-  tsPhraseCount: 469,
+  stPhraseCount: 0,
+  tsPhraseCount: 0,
   source: 'OpenCC',
   version: '2024',
 };
@@ -40,20 +38,6 @@ export const variantStats: VariantStats = {
  */
 export class ChineseConverter {
   private region: Region = 'hk';
-  private s2tPhraseMap: Map<string, string>;
-  private t2sPhraseMap: Map<string, string>;
-
-  constructor() {
-    this.s2tPhraseMap = new Map(Object.entries(stPhrases));
-    this.t2sPhraseMap = new Map(Object.entries(tsPhrases));
-  }
-
-  /**
-   * 短語數據是否已載入（打包進 main.js，始終可用）
-   */
-  get isPhraseLoaded(): boolean {
-    return true;
-  }
 
   setRegion(region: Region): void {
     this.region = region;
@@ -61,19 +45,6 @@ export class ChineseConverter {
 
   getRegion(): Region {
     return this.region;
-  }
-
-  /**
-   * 查詢短語/成語的繁簡變體
-   * 例如: 自行车 → 腳踏車, 一絲不掛 → 一丝不挂
-   */
-  getPhraseVariant(text: string): string | undefined {
-    if (!this.s2tPhraseMap || !this.t2sPhraseMap) return undefined;
-    const s2t = this.s2tPhraseMap.get(text);
-    if (s2t) return s2t;
-    const t2s = this.t2sPhraseMap.get(text);
-    if (t2s) return t2s;
-    return undefined;
   }
 
   /**

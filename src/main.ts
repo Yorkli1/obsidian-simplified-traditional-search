@@ -58,7 +58,6 @@ export default class STSearchPlugin extends Plugin {
       this.searchHook.setSilentMode(this.settings.silentMode);
       this.searchHook.setKeepOperators(this.settings.keepOperators);
       this.searchHook.setDebounceMs(this.settings.debounceMs);
-      this.searchHook.setPhraseEnabled(this.settings.phraseEnabled);
       return;
     }
 
@@ -67,7 +66,6 @@ export default class STSearchPlugin extends Plugin {
       this.settings.keepOperators,
       this.settings.silentMode,
       this.settings.debounceMs,
-      this.settings.phraseEnabled,
     );
     this.converter.setRegion(this.settings.region);
     if (hook.hook()) this.searchHook = hook;
