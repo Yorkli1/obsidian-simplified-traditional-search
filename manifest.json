@@ -1,7 +1,7 @@
 {
 	"id": "simplified-traditional-search",
 	"name": "Unified Chinese-characters Searcher (UCCS)",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"minAppVersion": "1.5.0",
 	"description": "解決筆記庫中繁簡中文無法互相搜索的問題，輸入任意中文字即可找到所有對應結果.",
 	"author": "York Li",
