@@ -135,6 +135,9 @@ export class STSearchSettingTab extends PluginSettingTab {
         slider
           .setLimits(200, 2000, 100)
           .setValue(this.plugin.settings.debounceMs)
+          // setDynamicTooltip is deprecated but still functional;
+          // setDisplayFormat (1.13.0+) causes rendering errors on older Obsidian
+          .setDynamicTooltip()
           .onChange(async value => {
             this.plugin.settings.debounceMs = value;
             await this.plugin.saveSettings();
