@@ -1,6 +1,6 @@
 import type { App } from 'obsidian';
 import { ChineseConverter, type Region } from './converter';
-import { expandQuery, isExpansionWithExtra, stripExpansion } from './expander';
+import { expandQuery, isExpansionWithExtra, stripExpansion, handleBackspace } from './expander';
 
 /**
  * 搜索攔截器 — 掛載到 Obsidian 的全局搜索輸入框
@@ -137,7 +137,41 @@ export class SearchHook {
 
     // 2. 值變短了（退格刪除）
     if (currentValue.length < this.lastUserValue.length) {
+      const result = handleBackspace(
+        currentValue, this.lastUserValue,
+        (t) => this.converter.hasChinese(t),
+        (t) => this.converter.needsConversion(t),
+      );
+      if (result.action === 'restore') {
+        this.isUpdating = true;
+        input.value = result.value;
+        this.isUpdating = false;
+        this.lastUserValue = result.value;
+        if (result.value && this.converter.hasChinese(result.value) && this.converter.needsConversion(result.value)) {
+          this._scheduleDebounce(input, result.value);
+        }
+        return;
+      }
       this.lastUserValue = currentValue;
+      if (result.action === 'reexpand') {
+        this._scheduleDebounce(input, currentValue);
+      }
+      return;
+    }
+
+    // 2b. 值比 lastUserValue 長但含括號 → 展開內容上退格（值仍比原文長）
+    // 例如展開 "(杖与剑) OR (杖與劍)" 後按退格 → "(杖与剑) OR (杖與劍"
+    // 注意：必須排除展開+追加輸入的情況（由第4步剝離處理）
+    if (/[()]/.test(currentValue) && this.lastUserValue && !/[()]/.test(this.lastUserValue)
+        && !isExpansionWithExtra(currentValue)) {
+      const restored = this.lastUserValue.slice(0, -1);
+      this.isUpdating = true;
+      input.value = restored;
+      this.isUpdating = false;
+      this.lastUserValue = restored;
+      if (restored && this.converter.hasChinese(restored) && this.converter.needsConversion(restored)) {
+        this._scheduleDebounce(input, restored);
+      }
       return;
     }
 
@@ -160,8 +194,8 @@ export class SearchHook {
     }
 
     // 5. 有括號 → 是我們自己展開的內容
+    // 不更新 lastUserValue，保持為展開前的原文，這樣退格時能正確恢復
     if (/[()]/.test(currentValue)) {
-      this.lastUserValue = currentValue;
       return;
     }
 

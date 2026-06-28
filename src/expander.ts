@@ -165,3 +165,48 @@ export function stripExpansion(query: string): string {
   const after = query.slice(m.index + m[0].length).trim();
   return (before + original + after).trim();
 }
+
+export type BackspaceAction =
+  | { action: 'restore'; value: string }
+  | { action: 'reexpand'; value: string }
+  | { action: 'none' };
+
+/**
+ * 判斷退格時應該如何處理
+ *
+ * 三種情況：
+ * 1. 在展開內容上退格 → 恢復原文並退一格
+ * 2. 在普通文字上退格 → 如果需要轉換則重新展開
+ * 3. 不需要處理
+ */
+export function handleBackspace(
+  currentValue: string,
+  lastUserValue: string,
+  hasChinese: (text: string) => boolean,
+  needsConversion: (text: string) => boolean,
+): BackspaceAction {
+  // 值變短了
+  if (currentValue.length < lastUserValue.length) {
+    // 含括號 → 展開內容上退格，恢復原文並退一格
+    if (/[()]/.test(currentValue)) {
+      const restored = lastUserValue.slice(0, -1);
+      return { action: 'restore', value: restored };
+    }
+    // 普通退格，如果需要轉換則重新展開
+    if (hasChinese(currentValue) && needsConversion(currentValue)) {
+      return { action: 'reexpand', value: currentValue };
+    }
+    return { action: 'none' };
+  }
+
+  // 值比 lastUserValue 長但含括號 → 展開內容上退格（值仍比原文長）
+  // 例如展開 "(杖与剑) OR (杖與劍)" 後按退格 → "(杖与剑) OR (杖與劍"
+  // 排除展開+追加輸入的情況（由 stripExpansion 處理）
+  if (/[()]/.test(currentValue) && lastUserValue && !/[()]/.test(lastUserValue)
+      && !isExpansionWithExtra(currentValue)) {
+    const restored = lastUserValue.slice(0, -1);
+    return { action: 'restore', value: restored };
+  }
+
+  return { action: 'none' };
+}
