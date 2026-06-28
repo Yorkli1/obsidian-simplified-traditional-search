@@ -6,7 +6,6 @@ export interface STSearchSettings {
   enabled: boolean;
   region: Region;
   keepOperators: boolean;
-  silentMode: boolean;
   debounceMs: number;
   phraseEnabled: boolean;
 }
@@ -15,9 +14,8 @@ export const DEFAULT_SETTINGS: STSearchSettings = {
   enabled: true,
   region: 'hk',
   keepOperators: true,
-  silentMode: false,
   debounceMs: 800,
-  phraseEnabled: false,
+  phraseEnabled: true,
 };
 
 export class STSearchSettingTab extends PluginSettingTab {
@@ -134,20 +132,6 @@ export class STSearchSettingTab extends PluginSettingTab {
           .setDynamicTooltip()
           .onChange(async value => {
             this.plugin.settings.debounceMs = value;
-            await this.plugin.saveSettings();
-            this.plugin.reevaluate();
-          })
-      );
-
-    // ── 簡化搜索欄模式 ──
-    new Setting(containerEl)
-      .setName('簡化搜索欄模式')
-      .setDesc('開啟後搜索欄只顯示你輸入的原文（如「剑」），不顯示展開後的 (剑) OR (劍)。搜尋結果仍會同時包含繁簡匹配。')
-      .addToggle(toggle =>
-        toggle
-          .setValue(this.plugin.settings.silentMode)
-          .onChange(async value => {
-            this.plugin.settings.silentMode = value;
             await this.plugin.saveSettings();
             this.plugin.reevaluate();
           })

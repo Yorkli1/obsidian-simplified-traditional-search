@@ -19,7 +19,6 @@ export class SearchHook {
   constructor(
     private converter: ChineseConverter,
     private keepOperators: boolean,
-    private silentMode: boolean,
     private debounceMs: number,
     private phraseEnabled: boolean,
   ) {
@@ -32,10 +31,6 @@ export class SearchHook {
 
   setKeepOperators(keep: boolean): void {
     this.keepOperators = keep;
-  }
-
-  setSilentMode(silent: boolean): void {
-    this.silentMode = silent;
   }
 
   setDebounceMs(ms: number): void {
@@ -265,15 +260,7 @@ export class SearchHook {
     input.value = expanded;
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
-
-    if (this.silentMode) {
-      window.requestAnimationFrame(() => {
-        input.value = originalValue;
-        this.isUpdating = false;
-      });
-    } else {
-      this.isUpdating = false;
-    }
+    this.isUpdating = false;
   }
 }
 
