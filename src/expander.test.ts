@@ -175,6 +175,19 @@ describe('isExpansionWithExtra', () => {
   it('returns false for plain text', () => {
     expect(isExpansionWithExtra('hello')).toBe(false);
   });
+
+  // all 地區三路展開（單字兩個繁體變體 → 三個 term）
+  it('returns false for pure three-way expansion', () => {
+    expect(isExpansionWithExtra('(里) OR (裏) OR (裡)')).toBe(false);
+  });
+
+  it('returns true for three-way expansion with suffix', () => {
+    expect(isExpansionWithExtra('(里) OR (裏) OR (裡)巷')).toBe(true);
+  });
+
+  it('returns true for three-way expansion with prefix', () => {
+    expect(isExpansionWithExtra('pre(里) OR (裏) OR (裡)')).toBe(true);
+  });
 });
 
 describe('stripExpansion', () => {
@@ -190,5 +203,16 @@ describe('stripExpansion', () => {
 
   it('returns original for non-expansion', () => {
     expect(stripExpansion('hello')).toBe('hello');
+  });
+
+  // all 地區三路展開：舊版 stripExpansion 會殘留單括號導致清空 bug
+  it('strips three-way expansion with suffix', () => {
+    const result = stripExpansion('(里) OR (裏) OR (裡)巷');
+    expect(result).toBe('里巷');
+  });
+
+  it('strips three-way expansion with prefix and suffix', () => {
+    const result = stripExpansion('a(里) OR (裏) OR (裡)b');
+    expect(result).toBe('a里b');
   });
 });

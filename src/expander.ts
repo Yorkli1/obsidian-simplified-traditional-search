@@ -12,7 +12,22 @@ export interface ExpandOptions {
 }
 
 /**
- * 將搜索查詢展開為繁簡 OR 查詢
+ * 將搜索查詢展開為繁簡 OR 查詢。
+ *
+ * 把用戶輸入的查詢字符串分詞後，對含中文的部分進行繁簡變體轉換，
+ * 並以 `(原文) OR (變體)` 的形式重新組合，使一次輸入能同時匹配
+ * 簡體與繁體內容。處理規則：
+ * - 單字：每個變體生成一個獨立的 OR 子句。
+ * - 多字：整串統一轉換（預設取各字第一變體；`all` 區域模式追加 TW 版）。
+ * - 運算符值（如 `tag:动漫`）：轉換冒號後的值，受 `keepOperators` 控制。
+ * - 短語補充：若 `phraseEnabled` 開啟且短語變體與現有項不同，追加為額外 term。
+ *
+ * @param query - 用戶原始輸入的搜索查詢字符串。
+ * @param converter - 提供字符變體查找與區域模式判斷的 ChineseConverter 實例。
+ * @param options - 展開選項：`keepOperators` 控制是否轉換運算符值，
+ *                  `phraseEnabled` 控制是否啟用短語級補充。
+ * @returns 展開後的查詢字符串，含中文部分已轉為 `(…) OR (…)` 形式；
+ *          無需轉換的 token 原樣保留，各 token 以空格連接。
  */
 export function expandQuery(
   query: string,
@@ -143,11 +158,16 @@ export function tokenize(query: string): Token[] {
   return tokens;
 }
 
+// 匹配整條 OR 鏈：(a) OR (b) OR (c) ...
+// 支援 all 地區的三路展開（單字兩個繁體變體 → 三個 term）。
+// 舊版只匹配恰好兩組括號，會把 (里) OR (裏) OR (裡)巷 誤判、殘留單括號。
+const EXPANSION_RE = /\([^)]+\)(?:\s+OR\s+\([^)]+\))+/;
+
 /**
  * 檢測是否為展開 + 用戶後續輸入
  */
 export function isExpansionWithExtra(query: string): boolean {
-  const m = query.match(/\([^)]+\)\s+OR\s+\([^)]+\)/);
+  const m = query.match(EXPANSION_RE);
   if (!m || m.index === undefined) return false;
   const before = query.slice(0, m.index).trim();
   const after = query.slice(m.index + m[0].length).trim();
@@ -158,7 +178,7 @@ export function isExpansionWithExtra(query: string): boolean {
  * 從展開查詢中還原用戶原始輸入
  */
 export function stripExpansion(query: string): string {
-  const m = query.match(/\([^)]+\)\s+OR\s+\([^)]+\)/);
+  const m = query.match(EXPANSION_RE);
   if (!m || m.index === undefined) return query;
   const before = query.slice(0, m.index).trim();
   const original = m[0].match(/^\(([^)]+)\)/)?.[1] || '';

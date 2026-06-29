@@ -57,9 +57,7 @@ export class SearchHook {
     this._unhook();
     this.inputEl = input;
 
-    input.addEventListener('input', this._onInput);
-    input.addEventListener('compositionstart', this._onCompositionStart);
-    input.addEventListener('compositionend', this._onCompositionEnd);
+    this._attachListeners(this.inputEl);
     this._setupFallback(container);
 
     this._processInput(input);
@@ -70,12 +68,23 @@ export class SearchHook {
     this._unhook();
   }
 
+  /** 三個監聽成套掛載 —— input 處理輸入，compositionstart/end 追蹤 IME 組合態 */
+  private _attachListeners(input: HTMLInputElement): void {
+    input.addEventListener('input', this._onInput);
+    input.addEventListener('compositionstart', this._onCompositionStart);
+    input.addEventListener('compositionend', this._onCompositionEnd);
+  }
+
+  private _detachListeners(input: HTMLInputElement): void {
+    input.removeEventListener('input', this._onInput);
+    input.removeEventListener('compositionstart', this._onCompositionStart);
+    input.removeEventListener('compositionend', this._onCompositionEnd);
+  }
+
   private _unhook(): void {
     this._cancelDebounce();
     if (this.inputEl) {
-      this.inputEl.removeEventListener('input', this._onInput);
-      this.inputEl.removeEventListener('compositionstart', this._onCompositionStart);
-      this.inputEl.removeEventListener('compositionend', this._onCompositionEnd);
+      this._detachListeners(this.inputEl);
       this.inputEl = null;
     }
     if (this.observeTimer !== null) {
@@ -91,9 +100,12 @@ export class SearchHook {
         '.search-input-container input, input[type="search"]'
       );
       if (input && input !== this.inputEl) {
-        this.inputEl?.removeEventListener('input', this._onInput);
+        // 輸入框被重建：先卸載舊監聽，再成套掛載到新 input
+        // 否則漏掛 compositionstart/end 會使 isComposing 永遠為 false，
+        // 拼音輸入法中途態失去「組合中一票否決」保護而被誤展開
+        if (this.inputEl) this._detachListeners(this.inputEl);
         this.inputEl = input;
-        input.addEventListener('input', this._onInput);
+        this._attachListeners(input);
         this._processInput(input);
       }
     }, 2000);

@@ -7,6 +7,8 @@ export default class STSearchPlugin extends Plugin {
   settings!: STSearchSettings;
   private searchHook: SearchHook | null = null;
   private converter: ChineseConverter;
+  private hookTimers: number[] = [];
+  private unloaded = false;
 
   async onload(): Promise<void> {
     this.converter = new ChineseConverter();
@@ -22,14 +24,19 @@ export default class STSearchPlugin extends Plugin {
       this.app.workspace.on('active-leaf-change', () => this._tryHook())
     );
 
-    window.setTimeout(() => this._tryHook(), 500);
-    window.setTimeout(() => this._tryHook(), 1500);
-    window.setTimeout(() => this._tryHook(), 3000);
+    // 延遲重試：搜索面板可能晚於插件載入才出現
+    for (const delay of [500, 1500, 3000]) {
+      const id = window.setTimeout(() => this._tryHook(), delay);
+      this.hookTimers.push(id);
+    }
 
     console.log('Simplified-Traditional Search: plugin loaded');
   }
 
   onunload(): void {
+    this.unloaded = true;
+    for (const id of this.hookTimers) window.clearTimeout(id);
+    this.hookTimers = [];
     this.searchHook?.unhook();
     this.searchHook = null;
     console.log('Simplified-Traditional Search: plugin unloaded');
@@ -52,7 +59,7 @@ export default class STSearchPlugin extends Plugin {
   }
 
   private _tryHook(): void {
-    if (!this.settings.enabled) return;
+    if (this.unloaded || !this.settings.enabled) return;
     if (this.searchHook) {
       this.searchHook.setRegion(this.settings.region);
       this.searchHook.setKeepOperators(this.settings.keepOperators);
