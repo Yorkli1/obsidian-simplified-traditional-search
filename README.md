@@ -9,6 +9,12 @@
 
 ---
 
+## Demo
+
+![UCCS Demo](assets/demo.gif)
+
+---
+
 ## Overview
 
 UCCS is an Obsidian plugin that expands your search query in real time to cover both Simplified and Traditional Chinese character variants. When you type a keyword in global search (`Cmd+Shift+F`), the plugin automatically generates an `OR` query with all relevant character variants, so you never miss a note due to font or regional differences.
